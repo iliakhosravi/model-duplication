@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  # One-shot container to warm up Hugging Face model cache
+  model_warmup:
+    image: python:3.12-bullseye
+    volumes:
+      - model_cache:/root/.cache/huggingface
+    command: >
+       sh -c "pip install --upgrade pip &&
+             pip install --no-cache-dir huggingface_hub &&
+             python -c 'from huggingface_hub import snapshot_download; snapshot_download(\"Qwen/Qwen3-0.6B\", cache_dir=\"/root/.cache/huggingface\")'"
+      
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/arm64
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - model_cache:/root/.cache/huggingface
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017/veritas_db
+      - REDIS_URL=redis://:123qwe@redis:6379
+    depends_on:
+      - model_warmup
+      - redis
+      - mongodb
+
+  mongodb:
+    image: arm64v8/mongo:latest
+    platform: linux/arm64
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  redis:
+    image: arm64v8/redis:latest
+    platform: linux/arm64
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass 123qwe
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mongodb_data:
+  redis_data:
+  model_cache:
