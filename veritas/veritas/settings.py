@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'channels',
     'api'
 ]
 
@@ -74,33 +73,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'veritas.wsgi.application'
 
 ASGI_APPLICATION = "veritas.asgi.application"
-
-# Redis backend (for scaling) - Use environment variable or fallback to localhost for development
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://:123qwe@127.0.0.1:6379')
-
-# Parse Redis URL for channels
-if REDIS_URL.startswith('redis://'):
-    # Extract host, port, password from URL
-    import urllib.parse
-    parsed = urllib.parse.urlparse(REDIS_URL)
-    redis_host = parsed.hostname or '127.0.0.1'
-    redis_port = parsed.port or 6379
-    redis_password = parsed.password or '123qwe'
-else:
-    redis_host = '127.0.0.1'
-    redis_port = 6379
-    redis_password = '123qwe'
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [{"host": redis_host, "port": redis_port, "password": redis_password, "db": 0}],
-            "capacity": 1500,
-            "expiry": 10,
-        },
-    },
-}
 
 
 # Database
