@@ -42,3 +42,10 @@ def evaluator_view(request):
         "tokenizer_input_params": tokenizer_input_params,
         "generation_params": generation_params,
     })
+
+
+def health_view(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "Only GET allowed."}, status=405)
+
+    return JsonResponse({"status": "ok"})
